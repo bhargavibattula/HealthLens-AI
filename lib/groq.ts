@@ -41,7 +41,6 @@ export async function ocrImage(base64DataUrl: string): Promise<OcrResult> {
   const completion = await groq.chat.completions.create({
     model: VISION_MODEL,
     temperature: 0,
-    temperature: 0,
     messages: [
       {
         role: 'user',
@@ -106,7 +105,6 @@ const REPORT_TYPES = ['Blood Test', 'ECG', 'MRI', 'X-Ray', 'CT Scan', 'Prescript
 export async function analyzeReportText(ocrText: string): Promise<AnalysisResult> {
   const completion = await groq.chat.completions.create({
     model: TEXT_MODEL,
-    temperature: 0,
     temperature: 0,
     messages: [
       {
@@ -205,7 +203,6 @@ export interface SearchFilters {
 export async function parseSearchQuery(query: string): Promise<SearchFilters> {
   const completion = await groq.chat.completions.create({
     model: TEXT_MODEL,
-    temperature: 0,
     temperature: 0,
     messages: [
       {
