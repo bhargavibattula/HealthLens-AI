@@ -39,7 +39,7 @@ export function DoctorPrepButton({ patient, reports }: { patient: Patient; repor
   return (
     <>
       <button
-        onClick={handleGenerate}
+        onClick={() => handleGenerate()}
         className="btn-secondary flex items-center gap-2 shadow-sm"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
