@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ocrImage, analyzeReportText } from '@/lib/groq';
+import { ocrImage, analyzeReportText, summarizeOcrText } from '@/lib/groq';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,6 +23,11 @@ export async function POST(req: NextRequest) {
     // Step 2: Run LLM analysis — classification, extraction, summary, reminders
     const analysis = await analyzeReportText(ocr.text || file.name);
 
+    let finalSummary = analysis.summary;
+    if (!finalSummary) {
+      finalSummary = await summarizeOcrText(ocr.text || file.name);
+    }
+
     // Stable report ID shared between report and its extracted_values
     const reportId = `r-${Date.now()}`;
 
@@ -40,7 +45,7 @@ export async function POST(req: NextRequest) {
         needs_patient_confirmation: !!analysis.patientNameOnReport,
         ocr_text: ocr.text || `(OCR could not detect text from this image)`,
         ocr_confidence: ocr.confidence,
-        summary: analysis.summary || ocr.text || `AI processed ${file.name} as ${analysis.reportType}.`,
+        summary: finalSummary || `AI processed ${file.name} as ${analysis.reportType}.`,
         report_date: analysis.reportDate || new Date().toISOString().split('T')[0],
         created_at: new Date().toISOString(),
         extracted_values: analysis.extractedValues.map((v, i) => ({

@@ -13,6 +13,15 @@ export interface OcrResult {
   confidence: number; // 0..1, model's own estimate of legibility/certainty
 }
 
+export async function summarizeOcrText(ocrText: string): Promise<string> {
+  const prompt = `Here is raw OCR text from a medical report:
+"""
+${ocrText}
+"""
+Please summarize this medical text in simple English so that a non-technical family member can easily understand it. State the findings clearly but do not diagnose. Keep it to 3-4 sentences.`;
+  return getGroqChatCompletion(prompt);
+}
+
 export async function getGroqChatCompletion(prompt: string): Promise<string> {
   const completion = await groq.chat.completions.create({
     model: TEXT_MODEL,
@@ -136,7 +145,12 @@ Return JSON with this exact shape:
   });
 
   let raw = completion.choices[0]?.message?.content || '{}';
-  raw = raw.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```json/g, '').replace(/```/g, '').trim();
+  raw = raw.replace(/<think>[\s\S]*?<\/think>/g, '');
+  const firstBrace = raw.indexOf('{');
+  const lastBrace = raw.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    raw = raw.substring(firstBrace, lastBrace + 1);
+  }
   let parsed: any = {};
   try {
     parsed = JSON.parse(raw);
@@ -226,7 +240,12 @@ Return JSON:
   });
 
   let raw = completion.choices[0]?.message?.content || '{}';
-  raw = raw.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```json/g, '').replace(/```/g, '').trim();
+  raw = raw.replace(/<think>[\s\S]*?<\/think>/g, '');
+  const firstBrace = raw.indexOf('{');
+  const lastBrace = raw.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    raw = raw.substring(firstBrace, lastBrace + 1);
+  }
   try {
     const parsed = JSON.parse(raw);
     return {
