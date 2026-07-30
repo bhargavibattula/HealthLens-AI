@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         needs_patient_confirmation: !!analysis.patientNameOnReport,
         ocr_text: ocr.text || `(OCR could not detect text from this image)`,
         ocr_confidence: ocr.confidence,
-        summary: analysis.summary || `AI processed ${file.name} as ${analysis.reportType}.`,
+        summary: analysis.summary || ocr.text || `AI processed ${file.name} as ${analysis.reportType}.`,
         report_date: analysis.reportDate || new Date().toISOString().split('T')[0],
         created_at: new Date().toISOString(),
         extracted_values: analysis.extractedValues.map((v, i) => ({
