@@ -41,7 +41,7 @@ export async function ocrImage(base64DataUrl: string): Promise<OcrResult> {
   const completion = await groq.chat.completions.create({
     model: VISION_MODEL,
     temperature: 0,
-    response_format: { type: 'json_object' },
+    temperature: 0,
     messages: [
       {
         role: 'user',
@@ -66,7 +66,8 @@ Respond ONLY with JSON: {"text": string, "confidence": number}`
     ]
   });
 
-  const raw = completion.choices[0]?.message?.content || '{}';
+  let raw = completion.choices[0]?.message?.content || '{}';
+  raw = raw.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```json/g, '').replace(/```/g, '').trim();
   try {
     const parsed = JSON.parse(raw);
     return {
@@ -106,7 +107,7 @@ export async function analyzeReportText(ocrText: string): Promise<AnalysisResult
   const completion = await groq.chat.completions.create({
     model: TEXT_MODEL,
     temperature: 0,
-    response_format: { type: 'json_object' },
+    temperature: 0,
     messages: [
       {
         role: 'system',
@@ -136,8 +137,14 @@ Return JSON with this exact shape:
     ]
   });
 
-  const raw = completion.choices[0]?.message?.content || '{}';
-  const parsed = JSON.parse(raw);
+  let raw = completion.choices[0]?.message?.content || '{}';
+  raw = raw.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```json/g, '').replace(/```/g, '').trim();
+  let parsed: any = {};
+  try {
+    parsed = JSON.parse(raw);
+  } catch(e) {
+    console.error("Failed to parse JSON in analyzeReportText:", raw);
+  }
 
   return {
     reportType: REPORT_TYPES.includes(parsed.reportType) ? parsed.reportType : 'Other',
@@ -199,7 +206,7 @@ export async function parseSearchQuery(query: string): Promise<SearchFilters> {
   const completion = await groq.chat.completions.create({
     model: TEXT_MODEL,
     temperature: 0,
-    response_format: { type: 'json_object' },
+    temperature: 0,
     messages: [
       {
         role: 'user',
@@ -221,7 +228,8 @@ Return JSON:
     ]
   });
 
-  const raw = completion.choices[0]?.message?.content || '{}';
+  let raw = completion.choices[0]?.message?.content || '{}';
+  raw = raw.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```json/g, '').replace(/```/g, '').trim();
   try {
     const parsed = JSON.parse(raw);
     return {
